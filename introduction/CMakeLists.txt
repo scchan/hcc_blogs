@@ -5,15 +5,16 @@ project (saxpy)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 execute_process(COMMAND hcc-config  --cxxflags OUTPUT_VARIABLE HCC_COMPILER_FLAGS)
-set( COMPILER_FLAGS "${COMPILER_FLAGS} ${HCC_COMPILER_FLAGS} -std=c++11" )
+string(STRIP "${HCC_COMPILER_FLAGS}" HCC_COMPILER_FLAGS)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HCC_COMPILER_FLAGS}")
 
 execute_process(COMMAND hcc-config  --ldflags  OUTPUT_VARIABLE HCC_LINKER_FLAGS)
-set( LINKER_FLAGS "${LINKER_FLAGS} ${HCC_LINKER_FLAGS}")
+string(STRIP "${HCC_LINKER_FLAGS}" HCC_LINKER_FLAGS)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${HCC_LINKER_FLAGS}")
 
 add_executable(saxpy saxpy.cpp)
 target_link_libraries(saxpy m)
 
-set_target_properties(saxpy PROPERTIES
-                      COMPILE_FLAGS ${COMPILER_FLAGS}
-                      LINK_FLAGS ${LINKER_FLAGS})
+add_executable(saxpy_array saxpy_array.cpp)
+target_link_libraries(saxpy_array m)
 
