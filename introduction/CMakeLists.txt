@@ -18,3 +18,6 @@ target_link_libraries(saxpy m)
 add_executable(saxpy_array saxpy_array.cpp)
 target_link_libraries(saxpy_array m)
 
+add_executable(saxpy_pstl saxpy_pstl.cpp)
+target_link_libraries(saxpy_pstl m)
+
