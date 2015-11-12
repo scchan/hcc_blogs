@@ -31,26 +31,29 @@ int main() {
     y[i] = a * x[i] + y[i]; 
   }
 
-  try {
-    hc::array<float, 1> array_x(N);
-    hc::completion_future future_x = hc::copy_async(x, x + N, array_x);
+  // allocate data buffers on the accelerator and copy the data over
+  hc::array<float, 1> array_x(N);
+  hc::completion_future future_x = hc::copy_async(x, x + N, array_x);
 
-    hc::array<float, 1> array_y(N);
-    hc::completion_future future_y = hc::copy_async(y_gpu, y_gpu + N, array_y);
+  hc::array<float, 1> array_y(N);
+  hc::completion_future future_y = hc::copy_async(y_gpu, y_gpu + N, array_y);
 
-    future_x.wait();
-    future_y.wait();
+  // wait for the copy operations to complete
+  future_x.wait();
+  future_y.wait();
 
-    // launch a GPU kernel to compute the saxpy in parallel 
-    hc::parallel_for_each(hc::extent<1>(N)
-                        , [&](hc::index<1> i) __attribute((hc)) {
-      array_y[i] = a * array_x[i] + array_y[i];
-    }).wait();
+  // launch a GPU kernel to compute the saxpy in parallel
+  hc::completion_future future_pfe;
+  future_pfe = hc::parallel_for_each(hc::extent<1>(N)
+                      , [&](hc::index<1> i) __attribute((hc)) {
+    array_y[i] = a * array_x[i] + array_y[i];
+  });
 
-    hc::copy_async(array_y, y_gpu).wait();
-  } catch (std::exception& e) {
-    std::cout << e.what() << std::endl;
-  }
+  // wait for the kernel to complete before copying results back
+  // to the host
+  future_pfe.wait();
+  future_y = hc::copy_async(array_y, y_gpu);
+  future_y.wait();
 
   // verify the results
   int errors = 0;
