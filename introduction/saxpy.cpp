@@ -7,9 +7,7 @@
 // header file for the hc API
 #include <hc.hpp>
 
-using namespace hc;
-
-#define N  1024
+#define N  (1024 * 500)
 
 int main() {
 
@@ -34,18 +32,15 @@ int main() {
 
   // wrap the data buffer around with an array_view
   // to let the hcc runtime to manage the data transfer
-  array_view<float, 1> av_x(N, x);
-  array_view<float, 1> av_y(N, y_gpu);
+  hc::array_view<float, 1> av_x(N, x);
+  hc::array_view<float, 1> av_y(N, y_gpu);
 
   // launch a GPU kernel to compute the saxpy in parallel 
-  completion_future future;
-  future = parallel_for_each(extent<1>(N), [=](index<1> i) __attribute((hc)) {
+  hc::parallel_for_each(hc::extent<1>(N)
+                      , [=](hc::index<1> i) __attribute((hc)) {
     av_y[i] = a * av_x[i] + av_y[i];
   });
-
-  // the GPU kernel is launched asynchronously, wait for it to finish
-  future.wait();
-
+   
   // verify the results
   int errors = 0;
   for (int i = 0; i < N; i++) {
