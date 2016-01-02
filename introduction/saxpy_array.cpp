@@ -45,7 +45,7 @@ int main() {
   // launch a GPU kernel to compute the saxpy in parallel
   hc::completion_future future_pfe;
   future_pfe = hc::parallel_for_each(hc::extent<1>(N)
-                      , [&](hc::index<1> i) __attribute((hc)) {
+                      , [&](hc::index<1> i) [[hc]] {
     array_y[i] = a * array_x[i] + array_y[i];
   });
 
