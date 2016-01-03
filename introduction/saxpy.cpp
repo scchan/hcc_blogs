@@ -37,7 +37,7 @@ int main() {
 
   // launch a GPU kernel to compute the saxpy in parallel 
   hc::parallel_for_each(hc::extent<1>(N)
-                      , [=](hc::index<1> i) __attribute((hc)) {
+                      , [=](hc::index<1> i) [[hc]] {
     av_y[i] = a * av_x[i] + av_y[i];
   });
    
