@@ -10,7 +10,7 @@ void print_global_id(const int extent) {
   hc::array_view<int, 1> global_id(global_extent);
   hc::parallel_for_each(global_extent
                       , [=](hc::index<1> i) [[hc]] {
-    global_id[i[0]] = i[0];
+    global_id[i] = i[0];
   });
 
   for (int i = 0; i < extent; i++) {
@@ -31,9 +31,9 @@ void print_global_local_tile_id(const int extent, const int tile_extent) {
   hc::parallel_for_each(t_extent
                       , [=](hc::tiled_index<1> i) [[hc]] {
     int global = i.global[0];
-    global_id[global] = i.global[0];
-    tiled_id[global] = i.local[0];
-    group_id[global] = i.tile[0];
+    global_id[i] = i.global[0];
+    tiled_id[i] = i.local[0];
+    group_id[i] = i.tile[0];
   });
 
   for (int i = 0; i < extent; i++) {
