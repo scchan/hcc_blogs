@@ -39,7 +39,8 @@ void print_global_local_tile_id(const int extent, const int tile_extent) {
   hc::array_view<int, 1> tiled_id(global_extent);
   hc::array_view<int, 1> group_id(global_extent);
 
-  // note that 
+  // Pass the tiled_extent, which encapsulates both the global grid size
+  //and the tile/groups size, to the parallel_for_each
   hc::parallel_for_each(t_extent
                       , [=](hc::tiled_index<1> idx) [[hc]] {
 
