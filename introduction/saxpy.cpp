@@ -21,11 +21,8 @@ int main() {
   std::generate_n(host_x, N, [&]() { return distribution(random_gen); });
   std::generate_n(host_y, N, [&]() { return distribution(random_gen); });
 
-  // make a copy of for the GPU implementation 
-  float host_result_y[N];
-  std::copy_n(host_y, N, host_result_y);
-
   // CPU implementation of saxpy
+  float host_result_y[N];
   for (int i = 0; i < N; i++) {
     host_result_y[i] = a * host_x[i] + host_y[i];
   }
