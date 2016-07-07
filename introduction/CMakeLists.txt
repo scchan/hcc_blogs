@@ -1,7 +1,7 @@
 cmake_minimum_required( VERSION 2.6.0 )
 
 project (saxpy)
-set(CMAKE_CXX_COMPILER "/opt/rocm/bin/hcc")
+set(CMAKE_CXX_COMPILER hcc)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
@@ -18,6 +18,11 @@ target_link_libraries(saxpy m)
 
 add_executable(saxpy_array saxpy_array.cpp)
 target_link_libraries(saxpy_array m)
+
+
+add_executable(saxpy_am_alloc saxpy_am_alloc.cpp)
+target_link_libraries(saxpy_am_alloc m hc_am)
+
 
 #add_executable(saxpy_pstl saxpy_pstl.cpp)
 #target_link_libraries(saxpy_pstl m)
