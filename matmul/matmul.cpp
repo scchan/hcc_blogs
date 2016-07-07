@@ -1,9 +1,10 @@
-
 #include <cstdio>
 #include <vector>
 #include <random>
 #include <algorithm>
 #include <hc.hpp>
+
+//#define DEBUG 1
 
 constexpr int RAND_N = 10;
 
@@ -18,8 +19,6 @@ void printMatrix(std::vector<int>& mat, const int M, const int N) {
 }
 
 int main() {
-
-//#define DEBUG 1
 
 #ifndef DEBUG
   constexpr int M_A = 128;
@@ -66,10 +65,13 @@ int main() {
     }
   }
 
+  // create 2D array_views to present MxN matrices
   hc::array_view<int, 2> av_mat_A(M_A, N_A, matA);
   hc::array_view<int, 2> av_mat_B(M_B, N_B, matB);
   hc::array_view<int, 2> av_mat_C(hc::extent<2>(M_C, N_C), matC_gpu);
 
+  // launch a MxN kernel with each work-item computing
+  // one element in the result matrix
   hc::parallel_for_each(av_mat_C.get_extent(), [=](hc::index<2> idx) [[hc]] {
     int p = 0;
     for (int n = 0; n < N_A; n++) {
@@ -80,7 +82,11 @@ int main() {
     av_mat_C(idx) = p;
   });
 
+  // synchronizes the results, which copies the data on the GPU
+  // back to vector on the host
+  av_mat_C.synchronize();
 
+#ifdef DEBUG
   printf("matrix A:\n");
   printMatrix(matA, M_A, N_A);
 
@@ -90,13 +96,12 @@ int main() {
   printf("matrix C:\n");
   printMatrix(matC, M_C, N_C);
 
-  av_mat_C.synchronize();
   printf("matrix C (GPU):\n");
   printMatrix(matC_gpu, M_C, N_C);
-
+#endif
 
   bool verify = std::equal(matC.begin(), matC.end(), matC_gpu.begin());
-  printf("GPU results match with host results: %s\n", verify?"true":"false");
+  printf("%s!\n", verify?"passed":"failed");
 
   return 0;
 }
