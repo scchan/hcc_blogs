@@ -31,12 +31,12 @@ int main() {
     host_result_y[i] = a * host_x[i] + host_y[i];
   }
 
-  // wrap the data buffer around with an array_view
-  // to let the hcc runtime to manage the data transfer
+  // allocate GPU memory through am_alloc
   hc::accelerator acc;
   float* x = hc::am_alloc(N * sizeof(float), acc, 0);
   float* y = hc::am_alloc(N * sizeof(float), acc, 0);
 
+  // copy the data from host to GPU
   hc::am_copy(x, host_x, N * sizeof(float));
   hc::am_copy(y, host_y, N * sizeof(float));
 
@@ -47,7 +47,11 @@ int main() {
     int i = ind[0];
     y[i] = a * x[i] + y[i];
   });
+
+  // wait for the kernel to complete
   future_pfe.wait();
+
+  // copy the data from GPU to host
   hc::am_copy(host_y, y, N * sizeof(float));
    
   // verify the results
