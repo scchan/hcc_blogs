@@ -38,6 +38,7 @@ int main() {
   });
 
   // print out the local IDs
+  printf("Local IDs:\n");
   for (int j = 0; j < N_Y; j++) {
     for (int i = 0; i < N_X; i++) {
       printf("(%2d,%2d) ", localIDs(j,i).x, localIDs(j,i).y);
@@ -46,6 +47,7 @@ int main() {
   }
 
   // print out the tile IDs
+  printf("\n\nTile IDs\n");
   for (int j = 0; j < N_Y; j++) {
     for (int i = 0; i < N_X; i++) {
       printf("(%2d,%2d) ", tileIDs(j,i).x, tileIDs(j,i).y);
