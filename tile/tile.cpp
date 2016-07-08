@@ -8,15 +8,15 @@ struct Point {
 };
 
 
-constexpr int N_X = 32;
-constexpr int N_Y = 32;
+constexpr int GLOBAL_X = 32;
+constexpr int GLOBAL_Y = 32;
 
 constexpr int TILE_X = 16;
 constexpr int TILE_Y = 4;
 
 int main() {
 
-  hc::extent<2> globalExtent(N_Y, N_X);
+  hc::extent<2> globalExtent(GLOBAL_Y, GLOBAL_X);
 
   // local thread IDs
   hc::array_view<Point,2> localIDs(globalExtent);
@@ -39,8 +39,8 @@ int main() {
 
   // print out the local IDs
   printf("Local IDs:\n");
-  for (int j = 0; j < N_Y; j++) {
-    for (int i = 0; i < N_X; i++) {
+  for (int j = 0; j < GLOBAL_Y; j++) {
+    for (int i = 0; i < GLOBAL_X; i++) {
       printf("(%2d,%2d) ", localIDs(j,i).x, localIDs(j,i).y);
     }
     printf("\n");
@@ -48,8 +48,8 @@ int main() {
 
   // print out the tile IDs
   printf("\n\nTile IDs\n");
-  for (int j = 0; j < N_Y; j++) {
-    for (int i = 0; i < N_X; i++) {
+  for (int j = 0; j < GLOBAL_Y; j++) {
+    for (int i = 0; i < GLOBAL_X; i++) {
       printf("(%2d,%2d) ", tileIDs(j,i).x, tileIDs(j,i).y);
     }
     printf("\n");
