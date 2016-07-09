@@ -7,14 +7,13 @@
 int main() {
 
   constexpr int NUM = 1024 * 1024;
-  //constexpr int NUM = 128;
   
   constexpr int NUM_THREADS = NUM / 2;
   constexpr int TILE_SIZE = 64;
 
   std::vector<int> data(NUM);
  
-  // initialize the input data
+  // initialize the input data with random values
   constexpr int RAND_N = 100;
   std::default_random_engine random_gen;
   std::uniform_int_distribution<int> distribution(-RAND_N, RAND_N);
@@ -22,9 +21,12 @@ int main() {
   std::generate(data.begin(), data.end(), gen);
 
   const hc::array_view<int,1> av_data(NUM, data);
+
+  // initialize the reduction sum to zero
   hc::array_view<int,1> reduced(1);
   reduced[0] = 0;
 
+  // define the grid size an the tile size
   hc::extent<1> globalExtent(NUM_THREADS);
   hc::tiled_extent<1> tiledExtent = globalExtent.tile(TILE_SIZE);
 
@@ -41,11 +43,16 @@ int main() {
     int localID = tidx.local[0];
     partialSums[localID] = localSum;
 
+
+    // With each iteration, reduce the number of threads participating in parallel reduction by
+    // half.  For the threads that are still active, load 2 values from the tile_static array
+    // and store the partial sum back to the static_static array
     for (int w = tidx.tile_dim[0]/2; w > 1; w/=2) {
 
       // synchronize the local memory between threads in the same tile
       tidx.barrier.wait_with_tile_static_memory_fence();
 
+      // check whether the current thread still participates in the reduction
       if (localID < w) {
         localSum = partialSums[localID]
                    + partialSums[localID + w];
@@ -56,12 +63,16 @@ int main() {
 
     // synchronize the local memory between threads in the same tile
     tidx.barrier.wait_with_tile_static_memory_fence();
+
+    // have thread #0 to combine the last 2 partial sums
+    // and to add it to the global reduction sum using an atomic add
     if (localID == 0) {
       localSum = partialSums[0] + partialSums[1];
       hc::atomic_fetch_add(&reduced[0], localSum);
     }
   });
 
+  // calculate the reduction on the CPU and verify the result
   int hostReduced = std::accumulate(data.begin(), data.end(), 0);
   if (reduced[0] == hostReduced) {
     printf("passed\n");
