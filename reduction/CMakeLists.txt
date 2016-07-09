@@ -15,3 +15,5 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${HCC_LINKER_FLAGS}")
 
 add_executable(reduce_group_mem reduce_group_mem.cpp)
 
+add_executable(reduce_dynamic_group_mem reduce_dynamic_group_mem.cpp)
+
