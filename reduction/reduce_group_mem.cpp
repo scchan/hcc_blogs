@@ -4,8 +4,6 @@
 #include <algorithm>
 #include <hc.hpp>
 
-#define __GROUP__ __attribute__((address_space(3)))
-
 int main() {
 
   constexpr int NUM = 1024 * 1024;
