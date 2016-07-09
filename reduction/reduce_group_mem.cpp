@@ -43,14 +43,13 @@ int main() {
     int localID = tidx.local[0];
     partialSums[localID] = localSum;
 
+    // synchronize the local memory between threads in the same tile
+    tidx.barrier.wait_with_tile_static_memory_fence();
 
     // With each iteration, reduce the number of threads participating in parallel reduction by
     // half.  For the threads that are still active, load 2 values from the tile_static array
     // and store the partial sum back to the static_static array
     for (int w = tidx.tile_dim[0]/2; w > 1; w/=2) {
-
-      // synchronize the local memory between threads in the same tile
-      tidx.barrier.wait_with_tile_static_memory_fence();
 
       // check whether the current thread still participates in the reduction
       if (localID < w) {
@@ -59,10 +58,10 @@ int main() {
 
         partialSums[localID] = localSum;
       }
-    }
 
-    // synchronize the local memory between threads in the same tile
-    tidx.barrier.wait_with_tile_static_memory_fence();
+      // synchronize the local memory between threads in the same tile
+      tidx.barrier.wait_with_tile_static_memory_fence();
+    }
 
     // have thread #0 to combine the last 2 partial sums
     // and to add it to the global reduction sum using an atomic add
