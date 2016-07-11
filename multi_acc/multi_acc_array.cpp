@@ -8,20 +8,20 @@
 // header file for the hc API
 #include <hc.hpp>
 
-#define N  (1024 * 500)
+#define N  (1024 * 1024)
 
 int main() {
 
   const float a = 100.0f;
 
-  float host_x[N];
-  float host_y[N];
+  std::vector<float> host_x(N);
+  std::vector<float> host_y(N);
 
   // initialize the input data
   std::default_random_engine random_gen;
   std::uniform_real_distribution<float> distribution(-N, N);
-  std::generate_n(host_x, N, [&]() { return distribution(random_gen); });
-  std::generate_n(host_y, N, [&]() { return distribution(random_gen); });
+  std::generate(host_x.begin(), host_x.end(), [&]() { return distribution(random_gen); });
+  std::generate(host_y.begin(), host_y.end(), [&]() { return distribution(random_gen); });
 
   // CPU implementation of saxpy
   float host_result_y[N];
@@ -64,15 +64,15 @@ int main() {
       x_arrays.push_back(hc::array<float,1>(numSaxpyPerView, acc_views.back()));
       auto& x_array = x_arrays.back();
 
-      hc::completion_future cpfuture_x = hc::copy_async(host_x + dataCursor
-                                                        , host_x + newDataCursor
+      hc::completion_future cpfuture_x = hc::copy_async(host_x.begin() + dataCursor
+                                                        , host_x.begin() + newDataCursor
                                                         , x_array);
 
       y_arrays.push_back(hc::array<float,1>(numSaxpyPerView, acc_views.back()));
       auto& y_array = y_arrays.back();
 
-      hc::completion_future cpfuture_y = hc::copy_async(host_y + dataCursor
-                                                        , host_y + newDataCursor
+      hc::completion_future cpfuture_y = hc::copy_async(host_y.begin() + dataCursor
+                                                        , host_y.begin() + newDataCursor
                                                         , y_array);
       dataCursor = newDataCursor;
       cpfuture_x.wait();
@@ -100,7 +100,7 @@ int main() {
   dataCursor = 0;
   for(auto v = y_arrays.begin(); v != y_arrays.end(); v++) {
     kernel_future->wait();
-    *kernel_future = hc::copy_async(*v, host_y + dataCursor);
+    *kernel_future = hc::copy_async(*v, host_y.begin() + dataCursor);
     dataCursor+=numSaxpyPerView;
     kernel_future++;
   }
