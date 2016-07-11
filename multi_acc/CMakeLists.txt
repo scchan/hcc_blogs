@@ -15,3 +15,5 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${HCC_LINKER_FLAGS}")
 
 add_executable(multi_acc multi_acc.cpp)
 
+add_executable(multi_acc_array multi_acc_array.cpp)
+
