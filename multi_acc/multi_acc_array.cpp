@@ -8,11 +8,10 @@
 // header file for the hc API
 #include <hc.hpp>
 
-#define N  (1024 * 1024)
-
 int main() {
 
-  const float a = 100.0f;
+  constexpr int N = 1024 * 1024 * 256;
+  constexpr float a = 100.0f;
 
   std::vector<float> host_x(N);
   std::vector<float> host_y(N);
@@ -24,7 +23,8 @@ int main() {
   std::generate(host_y.begin(), host_y.end(), [&]() { return distribution(random_gen); });
 
   // CPU implementation of saxpy
-  float host_result_y[N];
+  
+  std::vector<float> host_result_y(N);
   for (int i = 0; i < N; i++) {
     host_result_y[i] = a * host_x[i] + host_y[i];
   }

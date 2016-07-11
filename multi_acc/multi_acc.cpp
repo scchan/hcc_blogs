@@ -8,23 +8,22 @@
 // header file for the hc API
 #include <hc.hpp>
 
-#define N  (1024 * 500)
-
 int main() {
 
-  const float a = 100.0f;
+  constexpr int N = 1024 * 1024 * 256;
+  constexpr float a = 100.0f;
 
-  float host_x[N];
-  float host_y[N];
+  std::vector<float> host_x(N);
+  std::vector<float> host_y(N);
 
   // initialize the input data
   std::default_random_engine random_gen;
   std::uniform_real_distribution<float> distribution(-N, N);
-  std::generate_n(host_x, N, [&]() { return distribution(random_gen); });
-  std::generate_n(host_y, N, [&]() { return distribution(random_gen); });
+  std::generate(host_x.begin(), host_x.end(), [&]() { return distribution(random_gen); });
+  std::generate(host_y.begin(), host_y.end(), [&]() { return distribution(random_gen); });
 
   // CPU implementation of saxpy
-  float host_result_y[N];
+  std::vector<float> host_result_y(N);
   for (int i = 0; i < N; i++) {
     host_result_y[i] = a * host_x[i] + host_y[i];
   }
@@ -55,8 +54,8 @@ int main() {
       acc_views.push_back(acc->create_view());
 
       // create array_views that only covers the data portion needed by this accelerator_view
-      x_views.push_back(hc::array_view<float,1>(numSaxpyPerView, host_x + dataCursor));
-      y_views.push_back(hc::array_view<float,1>(numSaxpyPerView, host_y + dataCursor));
+      x_views.push_back(hc::array_view<float,1>(numSaxpyPerView, host_x.data() + dataCursor));
+      y_views.push_back(hc::array_view<float,1>(numSaxpyPerView, host_y.data() + dataCursor));
       dataCursor+=numSaxpyPerView;
 
 
