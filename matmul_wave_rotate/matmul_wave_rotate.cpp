@@ -30,7 +30,8 @@ int main() {
   constexpr int N_C = N_B;
 
   constexpr int wave_size = 64;
-  static_assert(M_C%wave_size == 0);
+  static_assert(M_C%wave_size == 0,
+                "The number of columns in Matrix A needs to be a multiple of 64");
 
   std::vector<int> matA(M_A * N_A);
   std::vector<int> matB(M_B * N_B);
@@ -62,13 +63,20 @@ int main() {
   hc::array_view<int, 2> av_mat_B(M_B, N_B, matB);
   hc::array_view<int, 2> av_mat_C(hc::extent<2>(M_C, N_C), matC_gpu);
 
-  // launch a MxN kernel with each work-item computing
-  // one element in the result matrix
+  // Launch a MxN kernel with each work-item computing one element in the result matrix.
+  // Use a workgroup size equal to one wavefront.  Each workgroup would compute 
+  // 64 adjacent elements on the same row in the output matrix
   hc::tiled_extent<2> t_extent = av_mat_C.get_extent().tile(1,wave_size);
   
   hc::parallel_for_each(t_extent, [=](hc::tiled_index<2> tidx) [[hc]] {
     int p = 0;
     for (int i = 0; i < N_A; i+=wave_size) {
+
+      // Each workitem within a group would load a different input element from the matrix A.
+      // Then after each iteration of the loop, we pass the data from matrix A
+      // to the adjacent workitem using a rotate to share that data within a group.
+      // After repeating this 64 times (size of a wave), the workgroup will move on to 
+      // the next block of 64 elements from matrix A. 
       int vA = av_mat_A(tidx.global[0], i + tidx.local[1]);
       for (int j = 0; j < wave_size; j++) {
         int vB = av_mat_B(i + ((tidx.local[1] + j)%wave_size), tidx.global[1]);
